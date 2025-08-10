@@ -1,7 +1,7 @@
 import torch
 
 # Data Paths
-DATA_PATH = "data/muv.csv"
+DATA_PATH = "../data/muv.csv"
 
 # Model Hyperparameters
 # Frequent Hitters (Neural Network)
