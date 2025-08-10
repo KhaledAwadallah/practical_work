@@ -1,0 +1,12 @@
+# Data Files
+src/data/
+
+# Python Cache
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# IDE and OS specific
+.idea/
+.DS_Store
