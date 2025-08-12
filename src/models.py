@@ -1,6 +1,7 @@
 import torch.nn as nn
 from sklearn.ensemble import RandomForestClassifier
 
+
 class NeuralNet(nn.Module):
     def __init__(self, input_size, hs1, hs2, hs3, output_size):
         super(NeuralNet, self).__init__()
@@ -23,5 +24,4 @@ class NeuralNet(nn.Module):
 
 
 def get_random_forest_classifier(seed):
-    """Initialize a RandomForestClassifier with a given random state"""
     return RandomForestClassifier(random_state=seed)

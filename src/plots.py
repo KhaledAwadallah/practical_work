@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from train import rf_results, fh_results
 import config
+import pickle
 
 
 # Function to plot performance metrics
@@ -13,7 +13,7 @@ def plot_performance(seeds, auc_results, dauprc_results, model_name):
 
     # Plot ROC AUC
     plt.figure()
-    plt.errorbar(seeds, mean_auc, yerr=std_auc, fmt='-o', capsize=5, label='ROC AUC')
+    plt.errorbar(seeds, mean_auc, yerr=std_auc, fmt="-o", capsize=5, label="ROC AUC")
     plt.title(f"{model_name} - Mean ROC AUC Score Across Seeds")
     plt.xlabel("Seed")
     plt.ylabel("Mean ROC AUC")
@@ -24,15 +24,22 @@ def plot_performance(seeds, auc_results, dauprc_results, model_name):
 
     # Plot DAUPRC
     plt.figure()
-    plt.errorbar(seeds, mean_dauprc, yerr=std_dauprc, fmt='-o', capsize=5, label='DAUPRC')
+    plt.errorbar(seeds, mean_dauprc, yerr=std_dauprc, fmt="-o", capsize=5, label="DAUPRC")
     plt.title(f"{model_name} - Mean DAUPRC Score Across Seeds")
     plt.xlabel("Seed")
     plt.ylabel("Mean DAUPRC")
     plt.ylim(0, 0.1)
     plt.legend()
     plt.grid()
+
+
+if __name__ == "__main__":
+    with open("results.pkl", "rb") as f:
+        data = pickle.load(f)
+
+    rf_results = data["rf_results"]
+    fh_results = data["fh_results"]
+
+    plot_performance(config.SEEDS, rf_results[0], rf_results[1], model_name="Random Forest")
+    plot_performance(config.SEEDS, fh_results[0], fh_results[1], model_name="Frequent Hitters")
     plt.show()
-
-
-plot_performance(config.SEEDS, rf_results[0], rf_results[2], model_name="Random Forest")
-plot_performance(config.SEEDS, fh_results[0], fh_results[2], model_name="Frequent Hitters")

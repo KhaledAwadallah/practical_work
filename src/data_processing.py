@@ -3,12 +3,13 @@ import pandas as pd
 from rdkit import Chem, DataStructs
 from rdkit.Chem import Descriptors, rdFingerprintGenerator
 from sklearn.preprocessing import StandardScaler
+import torch
 
 
 def load_and_preprocess_data(data_path):
     muv = pd.read_csv(data_path)
 
-    # 1. Compute molecule features (ECFP fingerprints and descriptors)
+    """ 1. Compute molecule features (ECFP fingerprints and descriptors) """
     molecules = list(muv["smiles"])
     # create mol objects
     mols = list()
@@ -22,7 +23,7 @@ def load_and_preprocess_data(data_path):
         fp_sparseVec = rdFingerprintGenerator.GetCountFPs(
             [mol], fpType=rdFingerprintGenerator.MorganFP
         )[0]
-        fp = np.zeros((0,), np.int8)  # Generate target pointer to fill
+        fp = np.zeros((0,), np.int8) # Generate target pointer to fill
         DataStructs.ConvertToNumpyArray(fp_sparseVec, fp)
         ecfps.append(fp)
     ecfps = np.array(ecfps)
@@ -47,24 +48,27 @@ def load_and_preprocess_data(data_path):
         descrs = np.array(descrs)
         descrs = descrs[real_200_descr]
         rdkit_descriptors.append(descrs)
+
     rdkit_descriptors = np.array(rdkit_descriptors)
 
     features = np.hstack((ecfps, rdkit_descriptors))
     print(f"Computed features with shape: {features.shape}")
 
-    # 2. Restructure labels matrix
+    """ 2. Restructure labels matrix """
     labels = muv.values[:, :-2]
     muv_matrix = np.empty(labels.shape, dtype=object)
     for r in range(len(labels)):
         for c in range(len(labels[0])):
             label = labels[r, c]
-            muv_matrix[r, c] = (r, c, int(label) if label in [0.0, 1.0] else -1)
+            if label != 0.0 and label != 1.0:
+                label = -1
+            muv_matrix[r, c] = (r, c, int(label))
 
     return features, muv_matrix
 
 
 def filter_labels(matrix):
-    """Filters out triplets with a label of -1 (NaNs)"""
+    """ Filter out triplets with a label -1 (NaNs) """
     matrix_copy = matrix.copy()
     flattened = matrix_copy.reshape(-1)
     filtered = []
@@ -75,9 +79,15 @@ def filter_labels(matrix):
 
 
 def get_standardized_features(features_train, features_val, features_test):
-    """Standardizes features based on the training set"""
+    """ Standardize features based on the training set """
     scaler = StandardScaler()
     features_train = scaler.fit_transform(features_train)
     features_val = scaler.transform(features_val)
     features_test = scaler.transform(features_test)
-    return features_train, features_val, features_test, scaler
+    return features_train, features_val, features_test
+
+
+def set_seed(seed):
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed(seed)
